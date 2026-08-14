@@ -364,7 +364,7 @@ void   applog2(int prio, const char *fmt, ...);
 void   applog_nl( const char *fmt, ... );
 void   restart_threads(void);
 extern json_t *json_rpc_call( CURL *curl, const char *url, const char *userpass,
-                	const char *rpc_req, int *curl_err, int flags );
+                 	const char *rpc_req, int *curl_err, int flags );
 extern void cbin2hex(char *out, const char *in, size_t len);
 void   bin2hex( char *s, const unsigned char *p, size_t len );
 char  *abin2hex( const unsigned char *p, size_t len );
@@ -598,6 +598,7 @@ enum algos {
         ALGO_DEEP,
         ALGO_DMD_GR,
         ALGO_GROESTL,     
+        ALGO_GR,
         ALGO_HEX,
         ALGO_HMQ1725,
         ALGO_JHA,
@@ -695,6 +696,7 @@ static const char* const algo_names[] = {
         "deep",
         "dmd-gr",
         "groestl",
+        "gr",
         "hex",
         "hmq1725",
         "jha",
@@ -838,153 +840,154 @@ extern bool opt_bell;    //  keyboard beep
 static char const usage[] = "\
 Usage: cpuminer [OPTIONS]\n\
 Options:\n\
-  -a, --algo=ALGO       specify the algorithm to use\n\
-                          allium        Garlicoin (GRLC)\n\
-                          anime         Animecoin (ANI)\n\
-                          argon2d250\n\
-                          argon2d500\n\
-                          argon2d1000\n\
-                          argon2d16000\n\
-                          argon2d4096\n\
-                          axiom         Shabal-256 MemoHash\n\
-                          blake         blake256r14 (SFR)\n\
-                          blake2b       Blake2b 256\n\
-                          blake2s       Blake-2 S\n\
-                          blakecoin     blake256r8\n\
-                          bmw           BMW 256\n\
-                          bmw512        BMW 512\n\
-                          c11           Chaincoin\n\
-                          deep          Deepcoin (DCN)\n\
-                          dmd-gr        Diamond\n\
-                          groestl       Groestl coin\n\
-                          hex           x16r-hex\n\
-                          hmq1725       Espers\n\
-                          jha           jackppot (Jackpotcoin)\n\
-                          keccak        Maxcoin\n\
-                          keccakc       Creative Coin\n\
-                          lbry          LBC, LBRY Credits\n\
-                          lyra2h        Hppcoin\n\
-                          lyra2re       lyra2\n\
-                          lyra2rev2     lyrav2\n\
-                          lyra2rev3     lyrav2v3\n\
-                          lyra2z\n\
-                          lyra2z330     Lyra2 330 rows\n\
-                          m7m           Magi (XMG)\n\
-                          myr-gr        Myriad-Groestl\n\
-                          minotaur\n\
-                          minotaurx\n\
-                          neoscrypt     NeoScrypt(128, 2, 1)\n\
-                          nist5         Nist5\n\
-                          pentablake    5 x blake512\n\
-                          phi1612       phi\n\
-                          phi2\n\
-                          polytimos\n\
-                          power2b       MicroBitcoin (MBC)\n\
-                          quark         Quark\n\
-                          qubit         Qubit\n\
-                          scrypt        scrypt(1024, 1, 1) (default)\n\
-                          scrypt:N      scrypt(N, 1, 1)\n\
-                          scryptn2      scrypt(1048576, 1,1)\n\
-                          sha256d       Double SHA-256\n\
-                          sha256dt      Modified sha256d (Novo)\n\
-                          sha256q       Quad SHA-256, Pyrite (PYE)\n\
-                          sha256t       Triple SHA-256, Onecoin (OC)\n\
-                          sha3d         Double Keccak256 (BSHA3)\n\
-                          sha512256d    Double SHA-512 (Radiant)\n\
-                          skein         Skein+Sha (Skeincoin)\n\
-                          skein2        Double Skein (Woodcoin)\n\
-                          skunk         Signatum (SIGT)\n\
-                          sonoa         Sono\n\
-                          timetravel    timeravel8, Machinecoin (MAC)\n\
-                          timetravel10  Bitcore (BTX)\n\
-                          tribus        Denarius (DNR)\n\
-                          vanilla       blake256r8vnl (VCash)\n\
-                          veltor\n\
-                          verthash\n\
-                          whirlpool\n\
-                          whirlpoolx\n\
-                          x11           Dash\n\
-                          x11evo        Revolvercoin (XRE)\n\
-                          x11gost       sib (SibCoin)\n\
-                          x12           Galaxie Cash (GCH)\n\
-                          x13           X13\n\
-                          x13bcd        bcd \n\
-                          x13sm3        hsr (Hshare)\n\
-                          x14           X14\n\
-                          x15           X15\n\
-                          x16r\n\
-                          x16rv2\n\
-                          x16rt         Gincoin (GIN)\n\
-                          x16rt-veil    Veil (VEIL)\n\
-                          x16s\n\
-                          x17\n\
-                          x20r\n\
-                          x21s\n\
-                          x22i\n\
-                          x25x\n\
-                          xevan         Bitsend (BSD)\n\
-                          yescrypt      Globalboost-Y (BSTY)\n\
-                          yescryptr8    BitZeny (ZNY)\n\
-                          yescryptr8g   Koto (KOTO)\n\
-                          yescryptr16   Eli\n\
-                          yescryptr32   WAVI\n\
-                          yespower      Cryply\n\
-                          yespowerr16   Yenten (YTN)\n\
-                          yespower-b2b  generic yespower + blake2b\n\
-                          zr5           Ziftr\n\
-  -N, --param-n=N       N parameter for scrypt based algos\n\
-  -R, --param-r=N       R parameter for scrypt based algos\n\
-  -K, --param-key=STRING  Key (pers) parameter for algos that use it\n\
-  -o, --url=URL         URL of mining server\n\
-  -O, --userpass=U:P    username:password pair for mining server\n\
-  -u, --user=USERNAME   username for mining server\n\
-  -p, --pass=PASSWORD   password for mining server\n\
-      --cert=FILE       certificate for mining server using SSL\n\
-  -x, --proxy=[PROTOCOL://]HOST[:PORT]  connect through a proxy\n\
-  -t, --threads=N       number of miner threads (default: number of processors)\n\
-  -r, --retries=N       number of times to retry if a network call fails\n\
-                          (default: retry indefinitely)\n\
-      --retry-pause=N   time to pause between retries, in seconds (default: 30)\n\
-      --time-limit=N    maximum time [s] to mine before exiting the program.\n\
-  -T, --timeout=N       timeout for long poll and stratum (default: 300 seconds)\n\
-  -s, --scantime=N      upper bound on time spent scanning current work when\n\
-                          long polling is unavailable, in seconds (default: 5)\n\
-      --randomize       randomize scan range (deprecated)\n\
-  -f, --diff-factor=N   divide req. difficulty by this factor (std is 1.0)\n\
-  -m, --diff-multiplier=N Multiply difficulty by this factor (std is 1.0)\n\
-      --hash-meter      display thread hash rates\n\
-      --coinbase-addr=ADDR  payout address for solo mining\n\
-      --coinbase-sig=TEXT  data to insert in the coinbase when possible\n\
-      --no-longpoll     disable long polling support\n\
-      --no-getwork      disable getwork support\n\
-      --no-gbt          disable getblocktemplate support\n\
-      --no-stratum      disable X-Stratum support\n\
-      --no-extranonce   disable Stratum extranonce subscribe\n\
-      --no-redirect     ignore requests to change the URL of the mining server\n\
-  -q, --quiet           reduce log verbosity\n\
-      --no-color        disable colored output\n\
-  -D, --debug           enable debug output\n\
-  -P, --protocol-dump   verbose dump of protocol-level activities\n"
+   -a, --algo=ALGO       specify the algorithm to use\n\
+                           allium        Garlicoin (GRLC)\n\
+                           anime         Animecoin (ANI)\n\
+                           argon2d250\n\
+                           argon2d500\n\
+                           argon2d1000\n\
+                           argon2d16000\n\
+                           argon2d4096\n\
+                           axiom         Shabal-256 MemoHash\n\
+                           blake         blake256r14 (SFR)\n\
+                           blake2b       Blake2b 256\n\
+                           blake2s       Blake-2 S\n\
+                           blakecoin     blake256r8\n\
+                           bmw           BMW 256\n\
+                           bmw512        BMW 512\n\
+                           c11           Chaincoin\n\
+                           deep          Deepcoin (DCN)\n\
+                           dmd-gr        Diamond\n\
+                           groestl       Groestl coin\n\
+                           gr            GhostRider (Raptoreum)\n\
+                           hex           x16r-hex\n\
+                           hmq1725       Espers\n\
+                           jha           jackppot (Jackpotcoin)\n\
+                           keccak        Maxcoin\n\
+                           keccakc       Creative Coin\n\
+                           lbry          LBC, LBRY Credits\n\
+                           lyra2h        Hppcoin\n\
+                           lyra2re       lyra2\n\
+                           lyra2rev2     lyrav2\n\
+                           lyra2rev3     lyrav2v3\n\
+                           lyra2z\n\
+                           lyra2z330     Lyra2 330 rows\n\
+                           m7m           Magi (XMG)\n\
+                           myr-gr        Myriad-Groestl\n\
+                           minotaur\n\
+                           minotaurx\n\
+                           neoscrypt     NeoScrypt(128, 2, 1)\n\
+                           nist5         Nist5\n\
+                           pentablake    5 x blake512\n\
+                           phi1612       phi\n\
+                           phi2\n\
+                           polytimos\n\
+                           power2b       MicroBitcoin (MBC)\n\
+                           quark         Quark\n\
+                           qubit         Qubit\n\
+                           scrypt        scrypt(1024, 1, 1) (default)\n\
+                           scrypt:N      scrypt(N, 1, 1)\n\
+                           scryptn2      scrypt(1048576, 1,1)\n\
+                           sha256d       Double SHA-256\n\
+                           sha256dt      Modified sha256d (Novo)\n\
+                           sha256q       Quad SHA-256, Pyrite (PYE)\n\
+                           sha256t       Triple SHA-256, Onecoin (OC)\n\
+                           sha3d         Double Keccak256 (BSHA3)\n\
+                           sha512256d    Double SHA-512 (Radiant)\n\
+                           skein         Skein+Sha (Skeincoin)\n\
+                           skein2        Double Skein (Woodcoin)\n\
+                           skunk         Signatum (SIGT)\n\
+                           sonoa         Sono\n\
+                           timetravel    timeravel8, Machinecoin (MAC)\n\
+                           timetravel10  Bitcore (BTX)\n\
+                           tribus        Denarius (DNR)\n\
+                           vanilla       blake256r8vnl (VCash)\n\
+                           veltor\n\
+                           verthash\n\
+                           whirlpool\n\
+                           whirlpoolx\n\
+                           x11           Dash\n\
+                           x11evo        Revolvercoin (XRE)\n\
+                           x11gost       sib (SibCoin)\n\
+                           x12           Galaxie Cash (GCH)\n\
+                           x13           X13\n\
+                           x13bcd        bcd \n\
+                           x13sm3        hsr (Hshare)\n\
+                           x14           X14\n\
+                           x15           X15\n\
+                           x16r\n\
+                           x16rv2\n\
+                           x16rt         Gincoin (GIN)\n\
+                           x16rt-veil    Veil (VEIL)\n\
+                           x16s\n\
+                           x17\n\
+                           x20r\n\
+                           x21s\n\
+                           x22i\n\
+                           x25x\n\
+                           xevan         Bitsend (BSD)\n\
+                           yescrypt      Globalboost-Y (BSTY)\n\
+                           yescryptr8    BitZeny (ZNY)\n\
+                           yescryptr8g   Koto (KOTO)\n\
+                           yescryptr16   Eli\n\
+                           yescryptr32   WAVI\n\
+                           yespower      Cryply\n\
+                           yespowerr16   Yenten (YTN)\n\
+                           yespower-b2b  generic yespower + blake2b\n\
+                           zr5           Ziftr\n\
+   -N, --param-n=N       N parameter for scrypt based algos\n\
+   -R, --param-r=N       R parameter for scrypt based algos\n\
+   -K, --param-key=STRING  Key (pers) parameter for algos that use it\n\
+   -o, --url=URL         URL of mining server\n\
+   -O, --userpass=U:P    username:password pair for mining server\n\
+   -u, --user=USERNAME   username for mining server\n\
+   -p, --pass=PASSWORD   password for mining server\n\
+       --cert=FILE       certificate for mining server using SSL\n\
+   -x, --proxy=[PROTOCOL://]HOST[:PORT]  connect through a proxy\n\
+   -t, --threads=N       number of miner threads (default: number of processors)\n\
+   -r, --retries=N       number of times to retry if a network call fails\n\
+                           (default: retry indefinitely)\n\
+       --retry-pause=N   time to pause between retries, in seconds (default: 30)\n\
+       --time-limit=N    maximum time [s] to mine before exiting the program.\n\
+   -T, --timeout=N       timeout for long poll and stratum (default: 300 seconds)\n\
+   -s, --scantime=N      upper bound on time spent scanning current work when\n\
+                           long polling is unavailable, in seconds (default: 5)\n\
+       --randomize       randomize scan range (deprecated)\n\
+   -f, --diff-factor=N   divide req. difficulty by this factor (std is 1.0)\n\
+   -m, --diff-multiplier=N Multiply difficulty by this factor (std is 1.0)\n\
+       --hash-meter      display thread hash rates\n\
+       --coinbase-addr=ADDR  payout address for solo mining\n\
+       --coinbase-sig=TEXT  data to insert in the coinbase when possible\n\
+       --no-longpoll     disable long polling support\n\
+       --no-getwork      disable getwork support\n\
+       --no-gbt          disable getblocktemplate support\n\
+       --no-stratum      disable X-Stratum support\n\
+       --no-extranonce   disable Stratum extranonce subscribe\n\
+       --no-redirect     ignore requests to change the URL of the mining server\n\
+   -q, --quiet           reduce log verbosity\n\
+       --no-color        disable colored output\n\
+   -D, --debug           enable debug output\n\
+   -P, --protocol-dump   verbose dump of protocol-level activities\n"
 #ifdef HAVE_SYSLOG_H
 "\
-  -S, --syslog          use system log for output messages\n"
+   -S, --syslog          use system log for output messages\n"
 #endif
 "\
-  -B, --background      run the miner in the background\n\
-      --benchmark       run in offline benchmark mode\n\
-      --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority    set process priority (default: 0 idle, 2 normal to 5 highest) (deprecated)\n\
-  -b, --api-bind=address[:port]   IP address for the miner API, default port is 4048)\n\
-      --api-remote      allow remote control\n\
-      --max-temp=N      only mine if cpu temp is less than specified value (linux)\n\
-      --max-rate=N[KMG] only mine if net hashrate is less than specified value\n\
-      --max-diff=N      only mine if net difficulty is less than specified value\n\
-  -c, --config=FILE     load a JSON-format configuration file\n\
-      --data-file=FILE  path and name of data file\n\
-      --verify          enable additional time consuming start up tests\n\
-      --stratum-keepalive  prevent disconnects when difficulty is too high\n\
-  -V, --version         display version and CPU information and exit\n\
-  -h, --help            display this help text and exit\n\
+   -B, --background      run the miner in the background\n\
+       --benchmark       run in offline benchmark mode\n\
+       --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1\n\
+       --cpu-priority    set process priority (default: 0 idle, 2 normal to 5 highest) (deprecated)\n\
+   -b, --api-bind=address[:port]   IP address for the miner API, default port is 4048)\n\
+       --api-remote      allow remote control\n\
+       --max-temp=N      only mine if cpu temp is less than specified value (linux)\n\
+       --max-rate=N[KMG] only mine if net hashrate is less than specified value\n\
+       --max-diff=N      only mine if net difficulty is less than specified value\n\
+   -c, --config=FILE     load a JSON-format configuration file\n\
+       --data-file=FILE  path and name of data file\n\
+       --verify          enable additional time consuming start up tests\n\
+       --stratum-keepalive  prevent disconnects when difficulty is too high\n\
+   -V, --version         display version and CPU information and exit\n\
+   -h, --help            display this help text and exit\n\
 ";
 
 #ifdef HAVE_GETOPT_LONG
@@ -1060,4 +1063,3 @@ static struct option const options[] = {
 
 
 #endif /* __MINER_H__ */
-
